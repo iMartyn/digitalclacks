@@ -62,7 +62,7 @@ build: .build-post
 	avr-size --mcu=atmega328 -C ${CND_ARTIFACT_PATH_${CONF}}
 
 upload: .build-post
-	avrdude -C/etc/avrdude.conf -patmega328p -carduino -P/dev/ttyUSB0 -b115200 -D -F -V -Uflash:w:${CND_ARTIFACT_PATH_${CONF}}.hex:i 
+	avrdude -C/etc/avrdude.conf -patmega328p -carduino -P/dev/ttyUSB0 -b57600 -D -F -V -Uflash:w:${CND_ARTIFACT_PATH_${CONF}}.hex:i 
 
 # clean
 clean: .clean-post
