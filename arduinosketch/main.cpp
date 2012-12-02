@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Servo.h> 
-#include "alphabet.h"
+#include "lookups.h"
 
 #define LEFT_ARM_PIN 10
 #define RIGHT_ARM_PIN 9
@@ -43,21 +43,13 @@ int limitAngle(int anAngle)
 
 int leftArmAngle(int intendedAngle)
 {
-	int correctAngle = (intendedAngle + 180 + 45);
-	if (correctAngle >= 360) {
-		correctAngle -= 360;
-	}
-	correctAngle = map(correctAngle,0,270,MIN_RANGE_LEFT,MAX_RANGE_LEFT);
+	int correctAngle = flagsPositionsLeft[intendedAngle];
 	return limitAngle(correctAngle);
 }
 
 int rightArmAngle(int intendedAngle)
 {
-	int correctAngle = (intendedAngle + 45);
-	if (correctAngle >= 360) {
-		correctAngle -= 360;
-	}
-	correctAngle = map(correctAngle,0,270,MIN_RANGE_RIGHT,MAX_RANGE_RIGHT);
+	int correctAngle = flagsPositionsRight[intendedAngle];
 	return limitAngle(correctAngle);
 }
 
@@ -103,6 +95,7 @@ void displaySymbol(int lookupByte, int originalByte)
 
 void magicError()
 {
+	inNumbersMode = 0;
 	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
 	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
 	delay(DELAY_BETWEEN_ERROR);
@@ -121,6 +114,35 @@ void magicError()
 	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
 	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
 	displaySymbol(SPECIAL_REST,' ');
+}
+
+int testModeLeft = 0;
+int testModeRight = 0;
+
+void testMode(byte direction) {
+	/* 
+	 * 0 = left up
+	 * 1 = left down
+	 * 2 = right up
+	 * 3 = right down
+	*/
+	if (direction == 0) {
+		leftArmServo.write(testModeLeft++);
+		Serial.print("Left Arm at ");
+		Serial.println(testModeLeft);
+	} else if (direction == 1) {
+		leftArmServo.write(testModeLeft--);
+		Serial.print("Left Arm at ");
+		Serial.println(testModeLeft);
+	} else if (direction == 2) {
+		rightArmServo.write(testModeRight++);
+		Serial.write("Right Arm at ");
+		Serial.println(testModeRight);
+	} else if (direction == 3) {
+		rightArmServo.write(testModeRight--);
+		Serial.write("Right Arm at ");
+		Serial.println(testModeRight);
+	}
 }
 
 void loop()
@@ -144,8 +166,18 @@ void loop()
 			}
 			if (lookupByte == SPECIAL_RESET_ERR) {
 				magicError();
+				if (inByte == '#') {
+					inTestMode = 1;
+				}
 			} else {
 				displaySymbol(lookupByte, inByte);
+			}
+		} else {
+			if (inByte == 13) {
+				inTestMode = 0;
+				magicError();
+			} else if ((inByte >= 'a') && (inByte <= 'd')) {
+				testMode(inByte - 'a');
 			}
 		}
 	}
