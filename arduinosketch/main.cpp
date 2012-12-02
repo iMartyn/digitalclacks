@@ -31,6 +31,18 @@ int pos;
 byte inNumbersMode;
 byte inTestMode;
 
+void genericMoveAndDelay(int leftAngle, int rightAngle, int delayTime) {
+	leftArmServo.write(leftAngle);
+	rightArmServo.write(rightAngle);
+	delay(delayTime);
+}
+
+void positionMoveAndDelay(int leftPosition, int rightPosition, int delayTime) {
+	int leftAngle = flagsPositionsLeft[leftPosition];
+	int rightAngle = flagsPositionsRight[rightPosition];
+	genericMoveAndDelay(leftAngle, rightAngle, delayTime);
+}
+
 int limitAngle(int anAngle)
 {
 	if (anAngle < min(MIN_RANGE_LEFT,MIN_RANGE_RIGHT)) {
@@ -55,20 +67,12 @@ int rightArmAngle(int intendedAngle)
 
 void setup()
 {
-	// initialize the digital pin as an output.
-	// Pin 13 has an LED connected on most Arduino boards:
-	pinMode(13, OUTPUT);
 	leftArmServo.attach(LEFT_ARM_PIN); // attaches the servo on pin 9 to the servo object 
 	rightArmServo.attach(RIGHT_ARM_PIN); // attaches the servo on pin 10 to the servo object 
 	Serial.begin(9600);
-	leftArmServo.write(MIN_RANGE_LEFT);
-	rightArmServo.write(MIN_RANGE_RIGHT);
-	delay(2000);
-	leftArmServo.write(MAX_RANGE_LEFT);
-	rightArmServo.write(MAX_RANGE_RIGHT);
-	delay(2000);
-	leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_REST]));
-	rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_REST]));
+	genericMoveAndDelay(MIN_RANGE_LEFT,MIN_RANGE_RIGHT,2000);
+	genericMoveAndDelay(MAX_RANGE_LEFT,MAX_RANGE_RIGHT,2000);
+	positionMoveAndDelay(letterAngleLeft[SPECIAL_REST],letterAngleRight[SPECIAL_REST],0);
 	inNumbersMode = 0;
 	inTestMode = 0;
 }
@@ -77,42 +81,23 @@ void displaySymbol(int lookupByte, int originalByte)
 {
 	if ((originalByte >= '0') && (originalByte <= '9')) {
 		if (!inNumbersMode) {
-			leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_NUMERALS]));
-			rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_NUMERALS]));
 			inNumbersMode = 1;
-			delay(DELAY_BETWEEN_CHARS);
+			positionMoveAndDelay(letterAngleLeft[SPECIAL_NUMERALS],letterAngleRight[SPECIAL_NUMERALS],DELAY_BETWEEN_CHARS);
 		}
 	} else if (inNumbersMode) {
-		leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_ALPHAMODE]));
-		rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_ALPHAMODE]));
 		inNumbersMode = 0;
-		delay(DELAY_BETWEEN_CHARS);
+		positionMoveAndDelay(letterAngleLeft[SPECIAL_ALPHAMODE],letterAngleRight[SPECIAL_ALPHAMODE],DELAY_BETWEEN_CHARS);
 	}
-	leftArmServo.write(leftArmAngle(letterAngleLeft[lookupByte]));
-	rightArmServo.write(rightArmAngle(letterAngleRight[lookupByte]));
-	delay(DELAY_BETWEEN_CHARS);
+	positionMoveAndDelay(letterAngleLeft[lookupByte],letterAngleRight[lookupByte],DELAY_BETWEEN_CHARS);
 }
 
 void magicError()
 {
 	inNumbersMode = 0;
-	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
-	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
-	delay(DELAY_BETWEEN_ERROR);
-	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
-	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
-	delay(DELAY_BETWEEN_ERROR);
-	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
-	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
-	delay(DELAY_BETWEEN_ERROR);
-	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
-	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
-	delay(DELAY_BETWEEN_ERROR);
-	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
-	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
-	delay(DELAY_BETWEEN_ERROR);
-	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
-	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
+	for (int i = 0;i<=3;i++)  {
+		positionMoveAndDelay(letterAngleLeft['u'-'a'],letterAngleRight['u'-'a'],DELAY_BETWEEN_ERROR);
+		positionMoveAndDelay(letterAngleLeft['n'-'a'],letterAngleRight['n'-'a'],DELAY_BETWEEN_ERROR);
+	}
 	displaySymbol(SPECIAL_REST,' ');
 }
 
