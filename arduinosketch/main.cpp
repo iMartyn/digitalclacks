@@ -4,8 +4,10 @@
 
 #define LEFT_ARM_PIN 10
 #define RIGHT_ARM_PIN 9
-#define MAX_RANGE 150
-#define MIN_RANGE 5
+#define MIN_RANGE_LEFT 10
+#define MAX_RANGE_LEFT 155
+#define MIN_RANGE_RIGHT 7
+#define MAX_RANGE_RIGHT 140
 #define DEGREE_DIVISOR 2
 #define DELAY_BETWEEN_CHARS 1000
 #define DELAY_BETWEEN_ERROR 200
@@ -27,13 +29,14 @@ Servo leftArmServo; // create servo object to control a servo
 Servo rightArmServo; // create servo object to control a servo 
 int pos;
 byte inNumbersMode;
+byte inTestMode;
 
 int limitAngle(int anAngle)
 {
-	if (anAngle < MIN_RANGE) {
-		return MIN_RANGE;
-	} else if (anAngle > MAX_RANGE) {
-		return MAX_RANGE;
+	if (anAngle < min(MIN_RANGE_LEFT,MIN_RANGE_RIGHT)) {
+		return min(MIN_RANGE_LEFT,MIN_RANGE_RIGHT);
+	} else if (anAngle > max(MAX_RANGE_LEFT,MAX_RANGE_RIGHT)) {
+		return max(MAX_RANGE_LEFT,MAX_RANGE_RIGHT);
 	}
 	return anAngle;
 }
@@ -44,7 +47,7 @@ int leftArmAngle(int intendedAngle)
 	if (correctAngle >= 360) {
 		correctAngle -= 360;
 	}
-	correctAngle = map(correctAngle,0,270,MIN_RANGE,MAX_RANGE);
+	correctAngle = map(correctAngle,0,270,MIN_RANGE_LEFT,MAX_RANGE_LEFT);
 	return limitAngle(correctAngle);
 }
 
@@ -54,7 +57,7 @@ int rightArmAngle(int intendedAngle)
 	if (correctAngle >= 360) {
 		correctAngle -= 360;
 	}
-	correctAngle = map(correctAngle,0,270,MIN_RANGE,MAX_RANGE);
+	correctAngle = map(correctAngle,0,270,MIN_RANGE_RIGHT,MAX_RANGE_RIGHT);
 	return limitAngle(correctAngle);
 }
 
@@ -66,15 +69,16 @@ void setup()
 	leftArmServo.attach(LEFT_ARM_PIN); // attaches the servo on pin 9 to the servo object 
 	rightArmServo.attach(RIGHT_ARM_PIN); // attaches the servo on pin 10 to the servo object 
 	Serial.begin(9600);
-	leftArmServo.write(MIN_RANGE);
-	rightArmServo.write(MIN_RANGE);
-	delay(5000);
-	leftArmServo.write(MAX_RANGE);
-	rightArmServo.write(MAX_RANGE);
-	delay(5000);
-	//leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_REST]));
-	//rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_REST]));
+	leftArmServo.write(MIN_RANGE_LEFT);
+	rightArmServo.write(MIN_RANGE_RIGHT);
+	delay(2000);
+	leftArmServo.write(MAX_RANGE_LEFT);
+	rightArmServo.write(MAX_RANGE_RIGHT);
+	delay(2000);
+	leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_REST]));
+	rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_REST]));
 	inNumbersMode = 0;
+	inTestMode = 0;
 }
 
 void displaySymbol(int lookupByte, int originalByte)
@@ -123,24 +127,26 @@ void loop()
 {
 	if (Serial.available()) {
 		int inByte = Serial.read();
-		int lookupByte;
-		if (inByte == ' ') {
-			lookupByte = SPECIAL_REST;
-		} else if ((inByte >= '1') && (inByte <= '9')) {
-			lookupByte = inByte - '1';
-		} else if (inByte == '0') {
-			lookupByte = 'k' - 'a';
-		} else if ((inByte >= 'A') && (inByte <= 'Z')) {
-			lookupByte = inByte - 'A';
-		} else if ((inByte >= 'a') && (inByte <= 'z')) {
-			lookupByte = inByte - 'a';
-		} else {
-			lookupByte = SPECIAL_RESET_ERR;
-		}
-		if (lookupByte == SPECIAL_RESET_ERR) {
-			magicError();
-		} else {
-			displaySymbol(lookupByte, inByte);
+		if (!inTestMode) {
+			int lookupByte;
+			if (inByte == ' ') {
+				lookupByte = SPECIAL_REST;
+			} else if ((inByte >= '1') && (inByte <= '9')) {
+				lookupByte = inByte - '1';
+			} else if (inByte == '0') {
+				lookupByte = 'k' - 'a';
+			} else if ((inByte >= 'A') && (inByte <= 'Z')) {
+				lookupByte = inByte - 'A';
+			} else if ((inByte >= 'a') && (inByte <= 'z')) {
+				lookupByte = inByte - 'a';
+			} else {
+				lookupByte = SPECIAL_RESET_ERR;
+			}
+			if (lookupByte == SPECIAL_RESET_ERR) {
+				magicError();
+			} else {
+				displaySymbol(lookupByte, inByte);
+			}
 		}
 	}
 }
