@@ -4,9 +4,11 @@
 
 #define LEFT_ARM_PIN 10
 #define RIGHT_ARM_PIN 9
-#define MAX_RANGE 165
+#define MAX_RANGE 150
 #define MIN_RANGE 5
 #define DEGREE_DIVISOR 2
+#define DELAY_BETWEEN_CHARS 1000
+#define DELAY_BETWEEN_ERROR 200
 
 /*
  WaveFlag
@@ -24,11 +26,10 @@ int main(void)
 Servo leftArmServo; // create servo object to control a servo 
 Servo rightArmServo; // create servo object to control a servo 
 int pos;
+byte inNumbersMode;
 
 int limitAngle(int anAngle)
 {
-	Serial.print(" Limit ");
-	Serial.println(anAngle);
 	if (anAngle < MIN_RANGE) {
 		return MIN_RANGE;
 	} else if (anAngle > MAX_RANGE) {
@@ -39,24 +40,22 @@ int limitAngle(int anAngle)
 
 int leftArmAngle(int intendedAngle)
 {
-	Serial.print(" L: ");
-	Serial.print(intendedAngle);
 	int correctAngle = (intendedAngle + 180 + 45);
 	if (correctAngle >= 360) {
 		correctAngle -= 360;
 	}
-	return limitAngle(correctAngle / DEGREE_DIVISOR);
+	correctAngle = map(correctAngle,0,270,MIN_RANGE,MAX_RANGE);
+	return limitAngle(correctAngle);
 }
 
 int rightArmAngle(int intendedAngle)
 {
-	Serial.print(" R: ");
-	Serial.print(intendedAngle);
 	int correctAngle = (intendedAngle + 45);
 	if (correctAngle >= 360) {
 		correctAngle -= 360;
 	}
-	return limitAngle(correctAngle / DEGREE_DIVISOR);
+	correctAngle = map(correctAngle,0,270,MIN_RANGE,MAX_RANGE);
+	return limitAngle(correctAngle);
 }
 
 void setup()
@@ -67,13 +66,57 @@ void setup()
 	leftArmServo.attach(LEFT_ARM_PIN); // attaches the servo on pin 9 to the servo object 
 	rightArmServo.attach(RIGHT_ARM_PIN); // attaches the servo on pin 10 to the servo object 
 	Serial.begin(9600);
-	leftArmServo.write(5);//leftArmAngle(letterAngleLeft[SPECIAL_REST]));
-	rightArmServo.write(5);//rightArmAngle(letterAngleRight[SPECIAL_REST]));
+	leftArmServo.write(MIN_RANGE);
+	rightArmServo.write(MIN_RANGE);
+	delay(5000);
+	leftArmServo.write(MAX_RANGE);
+	rightArmServo.write(MAX_RANGE);
+	delay(5000);
+	//leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_REST]));
+	//rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_REST]));
+	inNumbersMode = 0;
+}
+
+void displaySymbol(int lookupByte, int originalByte)
+{
+	if ((originalByte >= '0') && (originalByte <= '9')) {
+		if (!inNumbersMode) {
+			leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_NUMERALS]));
+			rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_NUMERALS]));
+			inNumbersMode = 1;
+			delay(DELAY_BETWEEN_CHARS);
+		}
+	} else if (inNumbersMode) {
+		leftArmServo.write(leftArmAngle(letterAngleLeft[SPECIAL_ALPHAMODE]));
+		rightArmServo.write(rightArmAngle(letterAngleRight[SPECIAL_ALPHAMODE]));
+		inNumbersMode = 0;
+		delay(DELAY_BETWEEN_CHARS);
+	}
+	leftArmServo.write(leftArmAngle(letterAngleLeft[lookupByte]));
+	rightArmServo.write(rightArmAngle(letterAngleRight[lookupByte]));
+	delay(DELAY_BETWEEN_CHARS);
 }
 
 void magicError()
 {
-	/* TODO: WAVE ABOUT*/
+	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
+	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
+	delay(DELAY_BETWEEN_ERROR);
+	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
+	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
+	delay(DELAY_BETWEEN_ERROR);
+	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
+	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
+	delay(DELAY_BETWEEN_ERROR);
+	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
+	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
+	delay(DELAY_BETWEEN_ERROR);
+	leftArmServo.write(leftArmAngle(letterAngleLeft['u'-'a']));
+	rightArmServo.write(rightArmAngle(letterAngleRight['u'-'a']));
+	delay(DELAY_BETWEEN_ERROR);
+	leftArmServo.write(leftArmAngle(letterAngleLeft['n'-'a']));
+	rightArmServo.write(rightArmAngle(letterAngleRight['n'-'a']));
+	displaySymbol(SPECIAL_REST,' ');
 }
 
 void loop()
@@ -97,8 +140,7 @@ void loop()
 		if (lookupByte == SPECIAL_RESET_ERR) {
 			magicError();
 		} else {
-			leftArmServo.write(leftArmAngle(letterAngleLeft[lookupByte]));
-			rightArmServo.write(rightArmAngle(letterAngleRight[lookupByte]));
+			displaySymbol(lookupByte, inByte);
 		}
 	}
 }

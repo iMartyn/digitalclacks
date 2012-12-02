@@ -19,6 +19,7 @@
 
 #define SPECIAL_REST 26
 #define SPECIAL_NUMERALS 27
+#define SPECIAL_ALPHAMODE ('J'-'A')
 #define SPECIAL_CANCEL 28
 #define SPECIAL_RESET_ERR -1
 
@@ -38,7 +39,7 @@ int letterAngleRight[29] = {
 	/* Y & Z */
 	FLAG_POS6,FLAG_POS6,
 	/* REST, NUMS, CANCEL */
-	FLAG_POS0,FLAG_POS4,FLAG_POS3
+	FLAG_POS0,FLAG_POS5,FLAG_POS7
 };
 /* And arm 2 here. */
 int letterAngleLeft[29] = {
@@ -55,7 +56,7 @@ int letterAngleLeft[29] = {
 	/* Y & Z*/
 	FLAG_POS3,FLAG_POS7,
 	/* REST, NUMS, CANCEL */
-	FLAG_POS0,FLAG_POS5,FLAG_POS7
+	FLAG_POS0,FLAG_POS4,FLAG_POS3
 };
 
 
