@@ -59,10 +59,10 @@ const int letterAngleLeft[29] = {
 	FLAG_POS0,FLAG_POS4,FLAG_POS3
 };
 
-const int flagsPositionsLeft[8] = {130,104,77,52,30,10,-1,154};
+const int flagsPositionsLeft[8] = {131,104,77,52,30,10,-1,154};
 const int flagsPositionsRight[8] = {29,6,-1,152,125,100,75,54};
 
-#define FLAG_LEFT_POS_0 = 130
+#define FLAG_LEFT_POS_0 = 131
 #define FLAG_LEFT_POS_1 = 104
 #define FLAG_LEFT_POS_2 = 77
 #define FLAG_LEFT_POS_3 = 52

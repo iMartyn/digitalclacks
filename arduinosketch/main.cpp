@@ -5,9 +5,9 @@
 #define LEFT_ARM_PIN 10
 #define RIGHT_ARM_PIN 9
 #define MIN_RANGE_LEFT 10
-#define MAX_RANGE_LEFT 155
-#define MIN_RANGE_RIGHT 7
-#define MAX_RANGE_RIGHT 140
+#define MAX_RANGE_LEFT 154
+#define MIN_RANGE_RIGHT 6
+#define MAX_RANGE_RIGHT 152
 #define DEGREE_DIVISOR 2
 #define DELAY_BETWEEN_CHARS 1000
 #define DELAY_BETWEEN_ERROR 200
@@ -70,11 +70,10 @@ void setup()
 	leftArmServo.attach(LEFT_ARM_PIN); // attaches the servo on pin 9 to the servo object 
 	rightArmServo.attach(RIGHT_ARM_PIN); // attaches the servo on pin 10 to the servo object 
 	Serial.begin(9600);
-	genericMoveAndDelay(MIN_RANGE_LEFT,MIN_RANGE_RIGHT,2000);
-	genericMoveAndDelay(MAX_RANGE_LEFT,MAX_RANGE_RIGHT,2000);
 	positionMoveAndDelay(letterAngleLeft[SPECIAL_REST],letterAngleRight[SPECIAL_REST],0);
 	inNumbersMode = 0;
 	inTestMode = 0;
+	Serial.write('*');
 }
 
 void displaySymbol(int lookupByte, int originalByte)
@@ -99,6 +98,7 @@ void magicError()
 		positionMoveAndDelay(letterAngleLeft['n'-'a'],letterAngleRight['n'-'a'],DELAY_BETWEEN_ERROR);
 	}
 	displaySymbol(SPECIAL_REST,' ');
+	Serial.write('@');
 }
 
 int testModeLeft = 0;
@@ -156,6 +156,7 @@ void loop()
 				}
 			} else {
 				displaySymbol(lookupByte, inByte);
+				Serial.write('*');
 			}
 		} else {
 			if (inByte == 13) {
